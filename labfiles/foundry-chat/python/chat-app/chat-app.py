@@ -1,11 +1,13 @@
 import os
+import asyncio
 from dotenv import load_dotenv
 
-# Import namespaces
-from openai import AzureOpenAI
+# import namespaces for async
+from openai import AsyncAzureOpenAI
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
-def main(): 
+async def main(): 
+
     # Clear the console
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -16,19 +18,21 @@ def main():
         model_deployment = os.getenv("MODEL_DEPLOYMENT")
         
         # Azure OpenAI requires an API version
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-08-07") 
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
 
-        # Initialize the Token Provider
+        # Initialize an async OpenAI client
         token_provider = get_bearer_token_provider(
             DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
         )
-    
-        # Initialize the Azure OpenAI client
-        openai_client = AzureOpenAI(
+        
+        openai_client = AsyncAzureOpenAI(
             azure_endpoint=azure_openai_endpoint,
             azure_ad_token_provider=token_provider,
             api_version=api_version
         )
+
+        # Track responses
+        last_response_id = None
 
         # Loop until the user wants to quit
         while True:
@@ -39,8 +43,8 @@ def main():
                 print("Please enter a prompt.")
                 continue
 
-            # Get a response
-            completion = openai_client.chat.completions.create(
+            # Await an asynchronous response
+            completion = await openai_client.chat.completions.create(
                 model=model_deployment,
                 messages=[
                     {
@@ -54,11 +58,15 @@ def main():
                 ]
             )
             
-            # This print statement is now properly indented inside the while loop!
             print(completion.choices[0].message.content)
 
     except Exception as ex:
         print(f"An error occurred: {ex}")
 
+    finally:
+        # Close the async client session safely
+        if 'openai_client' in locals():
+            await openai_client.close()
+
 if __name__ == '__main__': 
-    main()
+    asyncio.run(main())
