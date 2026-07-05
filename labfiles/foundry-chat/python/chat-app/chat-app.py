@@ -16,7 +16,7 @@ def main():
         model_deployment = os.getenv("MODEL_DEPLOYMENT")
         
         # Azure OpenAI requires an API version
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01") 
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-08-07") 
 
         # Initialize the Token Provider
         token_provider = get_bearer_token_provider(
