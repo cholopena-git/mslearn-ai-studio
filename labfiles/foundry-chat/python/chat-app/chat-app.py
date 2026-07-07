@@ -2,9 +2,9 @@ import os
 import asyncio
 from dotenv import load_dotenv
 
-# import namespaces for async
-from openai import AsyncAzureOpenAI
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+# Import standard AsyncOpenAI for Serverless deployments
+from openai import AsyncOpenAI
+from azure.identity import DefaultAzureCredential
 
 async def main(): 
 
@@ -12,26 +12,23 @@ async def main():
     os.system('cls' if os.name == 'nt' else 'clear')
 
     try:
-        # Get configuration settings 
-        load_dotenv()
-        azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        # Force reload the .env file
+        load_dotenv(override=True)
         
-        # FIXED: Correctly grab the deployment name from .env
+        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         model_deployment = os.getenv("MODEL_DEPLOYMENT")
         
-        # Azure OpenAI requires an API version
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-08-07")
+        print(f"\nDEBUG - Endpoint being used: {endpoint}")
+        print(f"DEBUG - Model being used: {model_deployment}\n")
 
-        # Initialize an async Azure OpenAI client
-        token_provider = get_bearer_token_provider(
-            DefaultAzureCredential(), "https://ai.azure.com/.default"
-        )
+        # For Serverless endpoints, we generate a token directly
+        credential = DefaultAzureCredential()
+        token = credential.get_token("https://cognitiveservices.azure.com/.default").token
         
-        # FIXED: Removed the redundant synchronous OpenAI client
-        openai_client = AsyncAzureOpenAI(
-            azure_endpoint=azure_openai_endpoint,
-            azure_ad_token_provider=token_provider,
-            api_version=api_version
+        # Initialize the STANDARD async OpenAI client, pointing to your Azure endpoint
+        openai_client = AsyncOpenAI(
+            base_url=endpoint,
+            api_key=token
         )
 
         # Track responses
