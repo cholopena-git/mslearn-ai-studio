@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 # import namespaces for async
 from openai import AsyncAzureOpenAI
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from openai import OpenAI
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 async def main(): 
 
@@ -18,12 +20,17 @@ async def main():
         model_deployment = os.getenv("MODEL_DEPLOYMENT")
         
         # Azure OpenAI requires an API version
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-08-07")
 
         # Initialize an async OpenAI client
         token_provider = get_bearer_token_provider(
-            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+            DefaultAzureCredential(), "https://ai.azure.com/.default"
         )
+        
+        openai_client = OpenAI(
+            base_url=azure_openai_endpoint,
+            api_key=token_provider
+        )   
         
         openai_client = AsyncAzureOpenAI(
             azure_endpoint=azure_openai_endpoint,
